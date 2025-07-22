@@ -1,12 +1,13 @@
 import * as baileys from "baileys";
 import { MongoClient } from "mongodb";
 export async function useMongoAuthState(options) {
-    const prefix = `baileys-auth-state:${options.sessionId}`;
-    const mongo = new MongoClient(options.uri, options);
+    const { uri, databaseName, collectionName, sessionId, ...mongoConfig } = options;
+    const prefix = `baileys-auth-state:${sessionId}`;
+    const mongo = new MongoClient(uri, mongoConfig);
     await mongo.connect();
-    const db = mongo.db(options.databaseName);
+    const db = mongo.db(databaseName);
     ;
-    const collection = db.collection(options.collectionName);
+    const collection = db.collection(collectionName);
     const readData = async (key) => {
         const document = await collection.findOne({ _id: `${prefix}:${key}` });
         if (document?.value) {

@@ -4,15 +4,16 @@ import { MongoAuthState, MongoAuthStateOptions } from "../../types";
 import { Document, MongoClient } from "mongodb";
 
 export async function useMongoAuthState(options: MongoAuthStateOptions): Promise<MongoAuthState> {
-    const prefix = `baileys-auth-state:${options.sessionId}`;
-    const mongo = new MongoClient(options.uri, options);
+    const { uri, databaseName, collectionName, sessionId, ...mongoConfig } = options;
+    const prefix = `baileys-auth-state:${sessionId}`;
+    const mongo = new MongoClient(uri, mongoConfig);
     await mongo.connect();
-    const db = mongo.db(options.databaseName);
+    const db = mongo.db(databaseName);
     interface AuthDocument extends Document {
         _id: string;
         value: string;
     };
-    const collection = db.collection<AuthDocument>(options.collectionName);
+    const collection = db.collection<AuthDocument>(collectionName);
     const readData = async (key: string) => {
         const document = await collection.findOne({ _id: `${prefix}:${key}` });
         if (document?.value) {

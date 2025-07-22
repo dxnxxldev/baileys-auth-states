@@ -4,8 +4,9 @@ import { SQliteAuthState, SQLiteAuthStateOptions } from "../../types";
 import Database from "better-sqlite3";
 
 export async function useSQLiteAuthState(options: SQLiteAuthStateOptions): Promise<SQliteAuthState> {
-    const prefix = `baileys-auth-state:${options.sessionId}`;
-    const db = new Database(options.filename, options);
+    const { filename, sessionId, ...databaseConfig } = options;
+    const prefix = `baileys-auth-state:${sessionId}`;
+    const db = new Database(filename, databaseConfig);
     db.pragma("journal_mode = WAL");
     db.prepare("CREATE TABLE IF NOT EXISTS BaileysAuth (id TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
     const readData = (key: string) => {

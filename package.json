@@ -1,6 +1,6 @@
 {
     "name": "baileys-auth-states",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "This repository contains multiple implementations of custom authentication state handlers 'useAuthState' for Baileys",
     "author": {
         "name": "DxnxxlDev",

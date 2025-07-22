@@ -4,8 +4,9 @@ import * as baileys from "baileys";
 import { RedisAuthState, RedisAuthStateOptions } from "../../types";
 
 export async function useRedisAuthState(options: RedisAuthStateOptions): Promise<RedisAuthState> {
-    const prefix = `baileys-auth-state:${options.sessionId}`;
-    const redis = new Redis(options);
+    const { sessionId, ...redisConfig } = options;
+    const prefix = `baileys-auth-state:${sessionId}`;
+    const redis = new Redis(redisConfig);
     const readData = async (key: string) => {
         const value = await redis.get(`${prefix}:${key}`);
         if (value) {
