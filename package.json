@@ -11,8 +11,28 @@
         "type": "git",
         "url": "git+https://github.com/dxnxxldev/baileys-auth-states.git"
     },
+    "bugs": {
+        "url": "https://github.com/dxnxxldev/baileys-auth-states/issues"
+    },
+    "homepage": "https://github.com/dxnxxldev/baileys-auth-states#readme",
+    "keywords": [
+        "baileys",
+        "sqlite",
+        "redis",
+        "mongodb",
+        "baileys-auth"
+    ],
     "main": "build/index.js",
     "types": "build/index.d.ts",
+    "files": [
+        "build",
+        "types",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc"
+    },
     "license": "MIT",
     "dependencies": {
         "baileys": "6.7.18",
