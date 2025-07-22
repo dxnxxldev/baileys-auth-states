@@ -1,0 +1,65 @@
+
+import * as baileys from "baileys";
+import { SQliteAuthState, SQLiteAuthStateOptions } from "../../types";
+import Database from "better-sqlite3";
+
+export async function useSQLiteAuthState(options: SQLiteAuthStateOptions): Promise<SQliteAuthState> {
+    const prefix = `baileys-auth-state:${options.sessionId}`;
+    const db = new Database(options.filename, options);
+    db.pragma("journal_mode = WAL");
+    db.prepare("CREATE TABLE IF NOT EXISTS BaileysAuth (id TEXT PRIMARY KEY, value TEXT NOT NULL)").run();
+    const readData = (key: string) => {
+        const row = db.prepare("SELECT value FROM BaileysAuth WHERE id = ?").get(`${prefix}:${key}`) as { value: string } | undefined;
+        if (row?.value) {
+            return JSON.parse(row.value, baileys.BufferJSON.reviver);
+        }
+        return null;
+    }
+    const writeData = (key: string, value: any) => {
+        db.prepare("INSERT INTO BaileysAuth (id, value) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value").run(`${prefix}:${key}`, JSON.stringify(value, baileys.BufferJSON.replacer));
+    }
+    const deleteData = (key: string) => {
+        db.prepare("DELETE FROM BaileysAuth WHERE id = ?").run(`${prefix}:${key}`);
+    }
+    const creds: baileys.AuthenticationCreds = await readData("creds") || baileys.initAuthCreds();
+    return {
+        state: {
+            creds,
+            keys: {
+                get: async <T extends keyof baileys.SignalDataTypeMap>(type: T, ids: string[]) => {
+                    const data: { [id: string]: baileys.SignalDataTypeMap[T] } = {};
+                    for (const id of ids) {
+                        let value = await readData(`${type}-${id}`);
+                        if (value) {
+                            if (type === "app-state-sync-key") {
+                                value = baileys.proto.Message.AppStateSyncKeyData.fromObject(value);
+                            }
+                            data[id] = value;
+                        }
+                    }
+                    return data;
+                },
+                set: (data: baileys.SignalDataSet) => {
+                    for (const type in data) {
+                        const i = type as keyof baileys.SignalDataSet;
+                        for (const id in data[i]) {
+                            const value = data[i][id];
+                            if (value) {
+                                writeData(`${type}-${id}`, value);
+                            } else {
+                                deleteData(`${type}-${id}`);
+                            }
+                        }
+                    }
+                },
+            },
+        },
+        saveCreds: async () => {
+            writeData("creds", creds);
+        },
+        removeCreds: async () => {
+            db.prepare("DELETE FROM BaileysAuth WHERE id LIKE ?").run(`${prefix}:%`);
+        },
+        db,
+    };
+};
