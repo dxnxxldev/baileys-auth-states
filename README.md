@@ -12,7 +12,7 @@ Each adapter is designed to be plug-and-play with your Baileys bot, giving you f
 
 ### 📦 Install
 ```bash
-npm i github:dxnxxldev/baileys-auth-states
+npm i baileys-auth-states
 ```
 
 ---
